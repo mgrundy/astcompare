@@ -8,10 +8,17 @@ var _ = require('underscore'),
     path = require('path');
 
 var cliDefaults = {
+    debug: false,
     jsFilesDir: ['jstests'],
 };
 
 var cli = cliArgs([
+    {
+        name: 'debug',
+        alias: 'd',
+        type: Boolean,
+        description: 'Save AST dumps and diff for any file sets containing different ASTs.',
+    },
     {
         name: 'help',
         alias: 'h',
@@ -103,10 +110,14 @@ while (directories.length) {
 
         if (fs.statSync(childRelativePath).isDirectory()) {
             directories.push(childRelativePath);
-        } else {
+        } else if(fs.statSync(childRelativePath).isFile()) { 
             if (path.extname(childRelativePath) === '.js') {
                 files.push(childRelativePath);
             }
+        } else {
+            // If for some reason the directory tree contains sockets, pipes
+            // or devices, ignore them. But log in verbose mode.
+            verbose(childRelativePath, " is not a normal file or directory");
         }
     });
 }
@@ -154,41 +165,45 @@ for (idx in files) {
     verbose(JSON.stringify(differences));
 
     if (differences) {
-        var outFilename = '.ast';
-        var diffFilename = '.diff';
-        var outPath1 = originalVersion + outFilename;
-        var outPath2 = modifiedVersion + outFilename;
-        var diffPath = outPath1 + diffFilename;
+        var astOutExt = '.ast';
+        var astDiffExt = '.diff';
+        var astFilePathOriginal = originalVersion + astOutExt;
+        var astFilePathModified = modifiedVersion + astOutExt;
+        var astDiffFilePath = astFilePathOriginal + astDiffExt;
 
         console.error('AST variation detected in ' + originalVersion);
 
-        // Write out the diff data and the AST for each version of the file.
-        try {
-            fs.writeFileSync(diffPath, JSON.stringify(differences, null, 4));
-        } catch (e) {
-            console.error('Error writing to', outPath1);
-            console.error(e);
-            process.exit(1);
-        }
-        try {
-            fs.writeFileSync(outPath1, JSON.stringify(originalAst, null, 4));
-        } catch (e) {
-            console.error('Error writing to', outPath1);
-            console.error(e);
-            process.exit(1);
-        }
-        try {
-            fs.writeFileSync(outPath2, JSON.stringify(modifiedAst, null, 4));
-        } catch (e) {
-            console.error('Error writing to', outPath2);
-            console.error(e);
-            process.exit(1);
-        }
+        if (options.debug) {
+            // Write out the diff data and the AST for each version of the file.
+            try {
+                fs.writeFileSync(astDiffFilePath, JSON.stringify(differences, null, 4));
+            } catch (e) {
+                console.error('Error writing to', astFilePathOriginal);
+                console.error(e);
+                process.exit(1);
+            }
+            try {
+                fs.writeFileSync(astFilePathOriginal, JSON.stringify(originalAst, null, 4));
+            } catch (e) {
+                console.error('Error writing to', astFilePathOriginal);
+                console.error(e);
+                process.exit(1);
+            }
+            try {
+                fs.writeFileSync(astFilePathModified, JSON.stringify(modifiedAst, null, 4));
+            } catch (e) {
+                console.error('Error writing to', astFilePathModified);
+                console.error(e);
+                process.exit(1);
+            }
 
-        console.error('AST dumps available in the following files:');
-        console.error(outPath1);
-        console.error(outPath2);
-        console.error('Diff of AST dumps saved to:');
-        console.error(diffPath, '\n');
+            console.error('AST dumps available in the following files:');
+            console.error(astFilePathOriginal);
+            console.error(astFilePathModified);
+            console.error('Diff of AST dumps saved to:');
+            console.error(astDiffFilePath, '\n');
+        } else {
+            console.error('Use the -d option to save AST dumps and diff info.');
+        }
     }
 }

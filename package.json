@@ -1,11 +1,9 @@
 {
   "name": "astcompare",
-  "version": "0.0.001",
+  "version": "1.0.0",
   "description": "An AST comparison utility",
   "scripts": {
     "start": "node astcompare.js",
-    "//": "The `test` command does not work on Windows because it uses forward slashes, which are not recognized as directory separators in cmd.exe shells.",
-    "test": "node ./node_modules/mocha/bin/mocha --recursive tests/"
   },
   "repository": {
     "type": "git",
@@ -16,12 +14,6 @@
     "command-line-args": "2.1.4",
     "deep-diff": "0.3.3",
     "underscore": "1.8.3"
-  },
-  "devDependencies": {
-    "chai": "3.0.0",
-    "mocha": "2.2.5",
-    "mocha-eslint": "1.0.0",
-    "rewire": "2.3.4"
   },
   "private": true
 }
