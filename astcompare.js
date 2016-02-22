@@ -5,7 +5,8 @@ var _ = require('underscore'),
     cliArgs = require('command-line-args'),
     diff = require('deep-diff').diff,
     fs = require('fs'),
-    path = require('path');
+    path = require('path'),
+    observableDiff = require('deep-diff').observableDiff;
 
 var cliDefaults = {
     debug: false,
@@ -17,7 +18,7 @@ var cli = cliArgs([
         name: 'debug',
         alias: 'd',
         type: Boolean,
-        description: 'Save AST dumps and diff for any file sets containing different ASTs.',
+        description: 'Save AST dumps and a diff file for any file sets containing different ASTs.',
     },
     {
         name: 'help',
@@ -60,7 +61,7 @@ _.defaults(options, cliDefaults);
 
 var usage = cli.getUsage({
     header: process.env.npm_package_description ||
-      'Compare the abstract syntax trees of js files in in one or more subdirectories of two trees',
+      'Compare the abstract syntax trees of js files in one or more subdirectories of two trees',
 });
 
 if (options.help) {
@@ -80,9 +81,7 @@ var files = [];
 var directories = [];
 
 // Create list of subdirectories to scan.
-
-for (idx in options.jsFilesDir) {
-    var subdir = options.jsFilesDir[idx];
+for (var subdir of options.jsFilesDir) {
     directories.push(path.join(options.originalSource, subdir));
 }
 
@@ -125,8 +124,7 @@ while (directories.length) {
 verbose(files.length, 'files found in the corpus');
 verbose('Beginning AST parse process');
 
-for (idx in files) {
-    var originalVersion = files[idx];
+for (var originalVersion of files) {
     var modifiedVersion = path.normalize(originalVersion.replace(options.originalSource, options.modifiedSource));
     var originalAst;
     var modifiedAst;
@@ -137,7 +135,6 @@ for (idx in files) {
     verbose(modifiedVersion);
 
     try {
-        // originalAst = esprima.parse(fs.readFileSync(originalVersion), parseOpts);
         originalAst = acorn.parse(fs.readFileSync(originalVersion), parseOpts);
     } catch (e) {
         console.error(originalVersion);
@@ -155,7 +152,7 @@ for (idx in files) {
     // Acorn always puts start and end in the AST. We need to filter that out during the comparison.
     // And since we're filtering, we can add the loc data, which contains line numbers, for easier
     // post run analysis.
-    var locsRegEx = new RegExp(/start|end|loc|start|line|column|end|line|column/);
+    var locsRegEx = new RegExp(/column|end|line|loc|start/);
     var differences = diff(originalAst,
                            modifiedAst,
                            function(key,path) {
@@ -173,6 +170,14 @@ for (idx in files) {
 
         console.error('AST variation detected in ' + originalVersion);
 
+        for (var diffEntry of differences) {
+            if (diffEntry.lhs && diffEntry.lhs.loc) {
+                console.error("Orignal:", diffEntry.lhs.loc);
+            }
+            if (diffEntry.rhs && diffEntry.rhs.loc) {
+                console.error("Modified:", diffEntry.rhs.loc);
+            }
+        }
         if (options.debug) {
             // Write out the diff data and the AST for each version of the file.
             try {
