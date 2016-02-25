@@ -2,18 +2,16 @@
   "name": "astcompare",
   "version": "1.0.0",
   "description": "An AST comparison utility",
-  "scripts": {
-    "start": "node astcompare.js",
-  },
+  "scripts": { "start": "node astcompare.js" },
   "repository": {
     "type": "git",
-    "url": "https://github.com/10gen/astcompare.git",
+    "url": "https://github.com/10gen/astcompare.git"
   },
   "dependencies": {
     "acorn": "3.0.2",
     "command-line-args": "2.1.4",
     "deep-diff": "0.3.3",
-    "underscore": "1.8.3",
+    "underscore": "1.8.3"
   },
-  "private": true,
+  "private": true
 }
