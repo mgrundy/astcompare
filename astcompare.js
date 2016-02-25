@@ -152,11 +152,11 @@ for (var originalVersion of files) {
         process.exit(1);
     }
 
-        // Acorn always puts start and end attributes in the AST. Since those will change on
-        // reformatting even when the AST isn't affected, we need to filter that out during the
-        // comparison.  Since we're filtering, we can have acorn include additional loc data
-        // containing line numbers. This will make it easier for someone reviewing the ASTs or diffs
-        // to figure out what changed the AST.
+    // Acorn always puts start and end attributes in the AST. Since those attributes will change on
+    // reformatting even when the AST isn't affected, we need to filter them out during the
+    // comparison. Since we're filtering, we can have acorn include additional loc data containing
+    // line numbers. This will make it easier for someone reviewing the ASTs or diffs to figure out
+    // what changed the AST.
     var locsRegEx = /^(column|end|line|loc|start)$/;
     var differences = diff(originalAst,
                                modifiedAst,
