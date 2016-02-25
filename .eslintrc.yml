@@ -1,5 +1,5 @@
 env:
-  mocha: true
+  es6: true
   node: true
 
 rules:
@@ -12,6 +12,7 @@ rules:
   eqeqeq: 2
   guard-for-in: 2
   indent: 2
+  keyword-spacing: 2
   no-cond-assign: 2
   no-constant-condition: 2
   no-control-regex: 2
@@ -41,7 +42,6 @@ rules:
   no-unreachable: 2
   quotes: [2, "single", "avoid-escape"]
   semi: 2
-  space-after-keywords: 2
   space-before-blocks: 2
   space-infix-ops: 2
   use-isnan: 2
